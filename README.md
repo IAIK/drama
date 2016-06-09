@@ -11,7 +11,11 @@ The "[DRAMA](https://www.usenix.org/conference/usenixsecurity16/technical-sessio
 The programs should work on x86-64 Intel CPUs with a recent Linux. Note that the code contains hardcoded addresses and thresholds that are specific to our test systems. Please adapt these addresses and thresholds to your system.
 
 ## Reverse-engineering your DRAM addressing functions
-TODO
+You can find the reverse engineering tool in the folder ''re''. Simply start the reverse engineering tool fixed to one CPU core, e.g. using [taskset](http://linuxcommand.org/man_pages/taskset1.html). The tool needs access to ''/proc/self/pagemap'' to translate virtual to physical addresses. Make sure the tool can access this file.
+
+The default settings are 8 expected sets. 60% of the physical memory are mapped for the address selection. You can provide different values via the command line argument ''-s'' and ''-p'' respectively. For example, to use 70% of the physical memory with a DRAM organization of 1 DIMM, 1 channel, 2 ranks and 8 banks (=1 * 1 * 2 * 8 = 16 sets), you would start the tool in the following way: `taskset 0x2 sudo ./measure -p 0.7 -s 16`.
+
+After the measurement is done, the tool outputs the reverse-engineered functions with a confidence how probable it is that they are correct. If the probability is low, try to run the tool again on a different CPU core and/or a different amount of mapped physical mapping. Also, ensure that the background noise on the machine is reduced to a minimum.
 
 ## DRAMA side channel attack
 Start by generating a histogram of row hits and row conflicts.
