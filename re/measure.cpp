@@ -21,6 +21,7 @@
 #include <sys/resource.h>
 #include <sstream>
 #include <iterator>
+#include <math.h>
 
 #include "measure.h"
 
