@@ -331,7 +331,7 @@ int main(int argc, char *argv[]) {
     size_t tries, t;
     std::set <addrpair> addr_pool;
     std::map<int, std::list<addrpair> > timing;
-    uint32_t hist[MAX_HIST_SIZE];
+    size_t hist[MAX_HIST_SIZE];
     int c;
     
     while ((c = getopt(argc, argv, "p:n:s:")) != EOF) {
@@ -398,6 +398,8 @@ int main(int argc, char *argv[]) {
 
     int failed;
     while (found_sets < expected_sets) {
+        for (size_t i = 0; i < MAX_HIST_SIZE; ++i)
+          hist[i] = 0;
         failed = 0;
         search_set:
         failed++;
@@ -477,13 +479,15 @@ int main(int argc, char *argv[]) {
         // scale histogram
         double scale_v = (double) (100.0)
                          / (max_v > 0 ? (double) max_v : 100.0);
+        assert(scale_v >= 0);
         while (hist[++min] <= 1);
         while (hist[--max] <= 1);
 
         // print histogram
-        for (int i = min; i <= max; i++) {
-            printf("%03d: %4d ", i, hist[i]);
-            for (int j = 0; j < hist[i] * scale_v; j++) {
+        for (size_t i = min; i <= max; i++) {
+            printf("%03zu: %4zu ", i, hist[i]);
+            assert(hist[i] >= 0);
+            for (size_t j = 0; j < hist[i] * scale_v && j < 80; j++) {
                 printf("#");
             }
 
