@@ -29,6 +29,8 @@
 int verbosity = 4;
 
 // default values
+volatile char global_buffer[1024ull*1024ull*1024ull];
+size_t global_cnt = 0;
 size_t num_reads = 5000;
 double fraction_of_physical_memory = 0.6;
 size_t expected_sets = 8;
@@ -169,14 +171,20 @@ uint64_t getTiming(pointer first, pointer second) {
         size_t t0 = rdtsc();
 
         while (number_of_reads-- > 0) {
-            *f;
-            *(f + number_of_reads);
-
-            *s;
-            *(s + number_of_reads);
-
             asm volatile("clflush (%0)" : : "r" (f) : "memory");
+            *f;
+            
             asm volatile("clflush (%0)" : : "r" (s) : "memory");
+            *s;
+
+            asm volatile("clflush (%0)" : : "r" (global_buffer + global_cnt) : "memory");
+            *(global_buffer + global_cnt);
+            global_cnt = (global_cnt + 64) % (1024ull*1024ull*1024ull);
+
+            asm volatile("clflush (%0)" : : "r" (global_buffer + global_cnt) : "memory");
+            *(global_buffer + global_cnt);
+            global_cnt = (global_cnt + 64) % (1024ull*1024ull*1024ull);
+
         }
 
         uint64_t res = (rdtsc2() - t0) / (num_reads);
@@ -332,6 +340,10 @@ int main(int argc, char *argv[]) {
     std::set <addrpair> addr_pool;
     std::map<int, std::list<addrpair> > timing;
     size_t hist[MAX_HIST_SIZE];
+    for (size_t i = 0; i < 1024ull*1024ull*1024ull; i += 64)
+    {
+      global_buffer[i] = i*37;
+    }
     int c;
     
     while ((c = getopt(argc, argv, "p:n:s:")) != EOF) {
